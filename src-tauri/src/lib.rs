@@ -1,5 +1,5 @@
 use base64::{engine::general_purpose::STANDARD, Engine as _};
-use log::info;
+use log::{info, warn};
 use serde::{Deserialize, Serialize};
 use std::sync::mpsc;
 use std::thread;
@@ -221,14 +221,14 @@ pub fn run() {
 
                 let shortcut = Shortcut::new(Some(Modifiers::CONTROL), Code::F2);
                 let app_handle = app.handle().clone();
-                app.global_shortcut()
-                    .on_shortcut(shortcut, move |_app, _shortcut, event| {
-                        if event.state() == tauri_plugin_global_shortcut::ShortcutState::Pressed {
-                            toggle_window(&app_handle);
-                        }
-                    })?;
-
-                info!("Global shortcut registered: Ctrl+F2 (toggle)");
+                match app.global_shortcut().on_shortcut(shortcut, move |_app, _shortcut, event| {
+                    if event.state() == tauri_plugin_global_shortcut::ShortcutState::Pressed {
+                        toggle_window(&app_handle);
+                    }
+                }) {
+                    Ok(_) => info!("Global shortcut registered: Ctrl+F2 (toggle)"),
+                    Err(e) => warn!("Could not register Ctrl+F2 shortcut (already in use?): {}", e),
+                };
             }
 
             Ok(())
