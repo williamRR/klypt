@@ -33,6 +33,14 @@
       "csp": null
     }
   },
+  "plugins": {
+    "updater": {
+      "pubkey": "",
+      "endpoints": [
+        "https://api.github.com/repos/williamRR/klypt/releases/latest"
+      ]
+    }
+  },
   "bundle": {
     "active": true,
     "targets": ["deb", "appimage", "msi", "dmg"],

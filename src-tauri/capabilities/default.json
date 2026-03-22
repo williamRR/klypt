@@ -10,6 +10,7 @@
     "clipboard-manager:allow-write-text",
     "clipboard-manager:allow-read-text",
     "shell:allow-open",
-    "store:default"
+    "store:default",
+    "updater:default"
   ]
 }

@@ -146,6 +146,21 @@ fn toggle_window(app: &AppHandle) {
     }
 }
 
+#[tauri::command]
+async fn check_update(app: tauri::AppHandle) -> Result<bool, String> {
+    use tauri_plugin_updater::UpdaterExt;
+    match app.updater().map_err(|e| e.to_string())?.check().await {
+        Ok(Some(update)) => {
+            let version = update.version.clone();
+            info!("Update available: {}", version);
+            update.download_and_install(|_, _| {}, || {}).await.map_err(|e| e.to_string())?;
+            Ok(true)
+        }
+        Ok(None) => Ok(false),
+        Err(e) => Err(e.to_string()),
+    }
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("info")).init();
@@ -158,10 +173,12 @@ pub fn run() {
         .plugin(tauri_plugin_clipboard_manager::init())
         .plugin(tauri_plugin_store::Builder::new().build())
         .plugin(tauri_plugin_shell::init())
+        .plugin(tauri_plugin_updater::Builder::new().build())
         .invoke_handler(tauri::generate_handler![
             copy_image_to_clipboard,
             hide_window,
-            start_oauth
+            start_oauth,
+            check_update
         ])
         .setup(|app| {
             // Background clipboard watcher — polls every 500ms, emits events to frontend

@@ -848,6 +848,19 @@ onAuthStateChange((user) => {
   }
 });
 
+async function checkForUpdates(silent = false) {
+  try {
+    const updated = await invoke<boolean>("check_update");
+    if (updated) {
+      showToast("Update installed — restart to apply", "success");
+    } else if (!silent) {
+      showToast("You're on the latest version", "");
+    }
+  } catch (e) {
+    if (!silent) showToast("Could not check for updates", "error");
+  }
+}
+
 window.addEventListener("DOMContentLoaded", async () => {
   initSupabase();
   const user = await initialize();
@@ -857,4 +870,6 @@ window.addEventListener("DOMContentLoaded", async () => {
   } else {
     showAuthScreen();
   }
+  // Silent update check on startup
+  setTimeout(() => checkForUpdates(true), 3000);
 });

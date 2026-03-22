@@ -63,15 +63,64 @@ const SOCIAL_PROOF = [
 ];
 
 const RELEASE_BASE = 'https://github.com/williamRR/klypt/releases/latest/download';
+const GITHUB_RELEASES_API = 'https://api.github.com/repos/williamRR/klypt/releases/latest';
+const WEB_APP_URL = 'https://web-zeta-one-26.vercel.app';
 
-const PLATFORMS = [
-  { name: 'macOS', version: 'v0.1.0', status: 'stable', url: `${RELEASE_BASE}/Klypt_0.1.0_aarch64.dmg` },
-  { name: 'Windows', version: 'v0.1.0', status: 'stable', url: `${RELEASE_BASE}/Klypt_0.1.0_x64_en-US.msi` },
-  { name: 'Linux', version: 'v0.1.0', status: 'stable', url: `${RELEASE_BASE}/Klypt_0.1.0_amd64.AppImage` },
-  { name: 'iOS', version: 'coming', status: 'coming', url: '' },
-  { name: 'Android', version: 'coming', status: 'coming', url: '' },
-  { name: 'Web', version: 'v0.1.0', status: 'stable', url: 'https://web-zeta-one-26.vercel.app' },
-];
+type Platform = { name: string; version: string; status: string; url: string };
+
+function buildPlatforms(version: string): Platform[] {
+  const v = version.replace(/^v/, '');
+  return [
+    { name: 'macOS',   version, status: 'stable',  url: `${RELEASE_BASE}/Klypt_${v}_aarch64.dmg` },
+    { name: 'Windows', version, status: 'stable',  url: `${RELEASE_BASE}/Klypt_${v}_x64_en-US.msi` },
+    { name: 'Linux',   version, status: 'stable',  url: `${RELEASE_BASE}/Klypt_${v}_amd64.AppImage` },
+    { name: 'iOS',     version: 'coming', status: 'coming', url: '' },
+    { name: 'Android', version: 'coming', status: 'coming', url: '' },
+    { name: 'Web',     version, status: 'stable',  url: WEB_APP_URL },
+  ];
+}
+
+let PLATFORMS: Platform[] = buildPlatforms('v0.1.1');
+
+async function fetchLatestRelease(): Promise<void> {
+  try {
+    const res = await fetch(GITHUB_RELEASES_API);
+    if (!res.ok) return;
+    const data = await res.json();
+    const version: string = data.tag_name ?? 'v0.1.1';
+    PLATFORMS = buildPlatforms(version);
+    // Re-render the download section with updated data
+    const grid = document.querySelector('.platforms-grid');
+    if (grid) grid.innerHTML = renderPlatformCards();
+  } catch (_) { /* silently fallback to defaults */ }
+}
+
+function renderPlatformCards(): string {
+  return PLATFORMS.map(platform => `
+    <div class="platform-card">
+      <div class="platform-icon">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="2" y="3" width="20" height="14" rx="2"/>
+          <line x1="8" y1="21" x2="16" y2="21"/>
+          <line x1="12" y1="17" x2="12" y2="21"/>
+        </svg>
+      </div>
+      <div class="platform-name">${platform.name}</div>
+      <div class="platform-version">${platform.version}</div>
+      <span class="platform-status ${platform.status}">${platform.status}</span>
+      <div class="platform-download">
+        ${platform.status !== 'coming' ? `
+          <a href="${platform.url}" class="btn btn-secondary btn-sm" style="width: 100%; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 6px;" ${platform.name !== 'Web' ? 'download' : 'target="_blank"'}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            ${platform.name === 'Web' ? 'Open App' : 'Download'}
+          </a>
+        ` : `
+          <button class="btn btn-ghost btn-sm" style="width: 100%;" disabled>Coming Soon</button>
+        `}
+      </div>
+    </div>
+  `).join('');
+}
 
 function renderLanding(): void {
   const root = document.getElementById('landing-root');
@@ -535,32 +584,7 @@ function createPlatforms(): HTMLElement {
       </div>
       
       <div class="platforms-grid">
-        ${PLATFORMS.map(platform => `
-          <div class="platform-card">
-            <div class="platform-icon">
-              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="2" y="3" width="20" height="14" rx="2"/>
-                <line x1="8" y1="21" x2="16" y2="21"/>
-                <line x1="12" y1="17" x2="12" y2="21"/>
-              </svg>
-            </div>
-            <div class="platform-name">${platform.name}</div>
-            <div class="platform-version">${platform.version}</div>
-            <span class="platform-status ${platform.status}">${platform.status}</span>
-            <div class="platform-download">
-              ${platform.status !== 'coming' ? `
-                <a href="${platform.url}" class="btn btn-secondary btn-sm" style="width: 100%; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 6px;" ${platform.name !== 'Web' ? 'download' : 'target="_blank"'}>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                  ${platform.name === 'Web' ? 'Open App' : 'Download'}
-                </a>
-              ` : `
-                <button class="btn btn-ghost btn-sm" style="width: 100%;" disabled>
-                  Coming Soon
-                </button>
-              `}
-            </div>
-          </div>
-        `).join('')}
+        ${renderPlatformCards()}
       </div>
     </div>
   `;
@@ -955,6 +979,7 @@ function escapeHtml(text: string): string {
 
 export function mountLanding(): void {
   renderLanding();
+  fetchLatestRelease();
 }
 
 export function unmountLanding(): void {
