@@ -62,13 +62,15 @@ const SOCIAL_PROOF = [
   },
 ];
 
+const RELEASE_BASE = 'https://github.com/williamRR/klypt/releases/latest/download';
+
 const PLATFORMS = [
-  { name: 'macOS', version: 'v2.1.0', status: 'stable' },
-  { name: 'Windows', version: 'v2.1.0', status: 'stable' },
-  { name: 'Linux', version: 'v2.0.0', status: 'beta' },
-  { name: 'iOS', version: 'v1.5.0', status: 'stable' },
-  { name: 'Android', version: 'v1.3.0', status: 'beta' },
-  { name: 'Web', version: 'v1.0.0', status: 'coming' },
+  { name: 'macOS', version: 'v0.1.0', status: 'stable', url: `${RELEASE_BASE}/Klypt_0.1.0_aarch64.dmg` },
+  { name: 'Windows', version: 'v0.1.0', status: 'stable', url: `${RELEASE_BASE}/Klypt_0.1.0_x64_en-US.msi` },
+  { name: 'Linux', version: 'v0.1.0', status: 'stable', url: `${RELEASE_BASE}/Klypt_0.1.0_amd64.AppImage` },
+  { name: 'iOS', version: 'coming', status: 'coming', url: '' },
+  { name: 'Android', version: 'coming', status: 'coming', url: '' },
+  { name: 'Web', version: 'v0.1.0', status: 'stable', url: 'https://web-zeta-one-26.vercel.app' },
 ];
 
 function renderLanding(): void {
@@ -547,10 +549,10 @@ function createPlatforms(): HTMLElement {
             <span class="platform-status ${platform.status}">${platform.status}</span>
             <div class="platform-download">
               ${platform.status !== 'coming' ? `
-                <button class="btn btn-secondary btn-sm" style="width: 100%;">
+                <a href="${platform.url}" class="btn btn-secondary btn-sm" style="width: 100%; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 6px;" ${platform.name !== 'Web' ? 'download' : 'target="_blank"'}>
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                  Download
-                </button>
+                  ${platform.name === 'Web' ? 'Open App' : 'Download'}
+                </a>
               ` : `
                 <button class="btn btn-ghost btn-sm" style="width: 100%;" disabled>
                   Coming Soon
